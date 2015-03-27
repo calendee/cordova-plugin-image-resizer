@@ -3,7 +3,7 @@
 #import <Cordova/CDVPluginResult.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 
-#define PROTONET_PHOTO_PREFIX @"protonet_"
+#define PROTONET_PHOTO_PREFIX @"kit"
 
 @implementation ImageResizer
 
@@ -65,19 +65,31 @@
     // generate unique file name
     NSString* filePath;
     NSData* data = UIImageJPEGRepresentation(newImage, [quality floatValue] / 100.0f);
-    int i = 1;
-    do {
-        filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, PROTONET_PHOTO_PREFIX, i++, @"jpg"];
-    } while ([fileMgr fileExistsAtPath:filePath]);
 
-    // save file
-    CDVPluginResult* result = nil;
-    if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
-        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
-    } else {
-        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[[NSURL fileURLWithPath:filePath] absoluteString]];
-    }
-    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+
+   NSString *base64String = [data base64EncodedStringWithOptions:0];
+    
+    NSDictionary *result = @{
+                           @"image": [NSString stringWithFormat:@"data:image/jpeg;base64,%@", base64String]
+                            // @"path": tempFileURL.absoluteString
+                             };
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:result];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    // int i = 1;
+    // do {
+    //     filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, PROTONET_PHOTO_PREFIX, i++, @"jpg"];
+    // } while ([fileMgr fileExistsAtPath:filePath]);
+
+// filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, PROTONET_PHOTO_PREFIX, i, @"jpg"];
+//     // save file
+//     CDVPluginResult* result = nil;
+//     if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
+//         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
+//     } else {
+//         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[[NSURL fileURLWithPath:filePath] absoluteString]];
+//     }
+//     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
 @end

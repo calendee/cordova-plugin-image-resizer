@@ -58,12 +58,12 @@
     UIGraphicsEndImageContext();
 
     // get the temp directory path
-    NSString* docsPath = [NSTemporaryDirectory()stringByStandardizingPath];
-    NSError* err = nil;
-    NSFileManager* fileMgr = [[NSFileManager alloc] init];
+    // NSString* docsPath = [NSTemporaryDirectory()stringByStandardizingPath];
+    // NSError* err = nil;
+    // NSFileManager* fileMgr = [[NSFileManager alloc] init];
 
     // generate unique file name
-    NSString* filePath;
+    // NSString* filePath;
     NSData* data = UIImageJPEGRepresentation(newImage, [quality floatValue] / 100.0f);
 
 
@@ -74,6 +74,7 @@
                             // @"path": tempFileURL.absoluteString
                              };
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:result];
+
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 
     // int i = 1;

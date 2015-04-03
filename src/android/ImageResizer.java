@@ -5,6 +5,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
@@ -23,6 +25,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.util.Log;
+import android.util.Base64;
 import android.content.Context;
 import android.provider.MediaStore.Images.Media;
 import android.net.Uri;
@@ -33,6 +36,8 @@ public class ImageResizer extends CordovaPlugin {
   public CallbackContext callbackContext;
 
   private String uri;
+  private String kitFileName;
+  private String encodedString;
   private String folderName;
   private int quality;
   private int width;
@@ -56,10 +61,63 @@ public class ImageResizer extends CordovaPlugin {
         // load the image from uri
         Bitmap bitmap = loadScaledBitmapFromUri(uri, width, height);
 
-        // save the image as jpeg on the device
-        Uri scaledFile = saveFile(bitmap);
+        // http://stackoverflow.com/a/4830846/75644
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object   
+        byte[] b = baos.toByteArray(); 
 
-        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, scaledFile.toString()));
+        String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+        Log.i("Protonet", "encodedImage : " + encodedImage);
+
+        // JSONObject result = new JSONObject("");
+        // result.put("image", encodedImage);
+
+        JSONObject result = new JSONObject();
+          try {
+            result.put("image", encodedImage);
+          } catch (JSONException e) {
+            Log.e("Protonet", "Failed to create JSON");
+            e.printStackTrace();
+          }        
+
+        // // save the image as jpeg on the device
+        // Uri scaledFile = saveFile(bitmap);
+        // Log.i("Protonet", "scaledFile : " + scaledFile);
+
+        // kitFileName = scaledFile.toString();
+
+        // File finalFile = new File(kitFileName);
+
+        // Log.i("Protonet", "kitFileName : " + kitFileName);
+        // Log.i("Protonet", "finalFile : " + finalFile);
+
+        // try {
+        //   // Maybe try http://stackoverflow.com/a/15563584/75644 instead???
+        //   // http://stackoverflow.com/a/17874349/75644
+        //   InputStream inputStream = new FileInputStream(finalFile);//You can get an inputStream using any IO API
+        //   byte[] bytes;
+        //   byte[] buffer = new byte[8192];
+        //   int bytesRead;
+        //   ByteArrayOutputStream output = new ByteArrayOutputStream();
+        //   try {
+        //             Log.i("Protonet", "getting bytes :(");
+
+        //       while ((bytesRead = inputStream.read(buffer)) != -1) {
+        //         output.write(buffer, 0, bytesRead);
+        //       }
+        //   } catch (IOException e) {
+        //     e.printStackTrace();
+        //   }
+          
+        //   bytes = output.toByteArray();
+        //   encodedString = Base64.encodeToString(bytes, Base64.DEFAULT);
+
+        // } catch (FileNotFoundException e) {
+        //   Log.e("Protonet", "kitFileName File not found. ::::::");
+        // }
+        
+
+        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, result));
         return true;
       } else {
         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR));
@@ -108,7 +166,7 @@ public class ImageResizer extends CordovaPlugin {
     }
 
     if(success) {
-      String fileName = System.currentTimeMillis() + ".jpg";
+      String fileName = "kit-temp.jpg";
       File file = new File(folder, fileName);
       if(file.exists()) file.delete();
       try {
